@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Rook Lite",
+  "version": "0.1.0",
+  "description": "AI-powered marketing analysis for any webpage",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
