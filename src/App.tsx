@@ -3,42 +3,47 @@ import "./App.css";
 
 /* ---------------- TYPES ---------------- */
 
+type AnalysisSection = {
+  id?: string;
+  title?: string;
+  insights?: string[];
+};
+
+type Verdicts = {
+  marketing?: string;
+  strategic?: string;
+};
+
+type Score = {
+  value?: number;
+  reasoning?: string;
+};
+
 type AnalysisResult = {
-  what_this_site_is: string;
-  target_audience: string;
-
-  strengths: string[];
-  weaknesses: string[];
-  improvements: string[];
-
-  seo_metadata_feedback: string;
-  social_presence_analysis: string;
-
-  marketing_verdict: string;
-  investor_verdict: string;
-
-  overall_score: number;
+  asset_type?: string;
+  overview?: string;
+  target_audience?: string;
+  sections?: AnalysisSection[];
+  verdicts?: Verdicts;
+  score?: Score;
 };
 
 /* ---------------- HELPERS ---------------- */
 
 function normalizeAnalysis(raw: Record<string, unknown>): AnalysisResult {
   return {
-    what_this_site_is: String(raw.what_this_site_is ?? "Not available"),
-    target_audience: String(raw.target_audience ?? "Not available"),
-
-    strengths: Array.isArray(raw.strengths) ? raw.strengths : [],
-    weaknesses: Array.isArray(raw.weaknesses) ? raw.weaknesses : [],
-    improvements: Array.isArray(raw.improvements) ? raw.improvements : [],
-
-    seo_metadata_feedback: String(raw.seo_metadata_feedback ?? "Not available"),
-    social_presence_analysis: String(raw.social_presence_analysis ?? "Not available"),
-
-    marketing_verdict: String(raw.marketing_verdict ?? "Not available"),
-    investor_verdict: String(raw.investor_verdict ?? "Not available"),
-
-    overall_score:
-      typeof raw.overall_score === "number" ? raw.overall_score : 0,
+    asset_type: String(raw.asset_type ?? "unknown"),
+    overview: String(raw.overview ?? ""),
+    target_audience: String(raw.target_audience ?? ""),
+    sections: Array.isArray(raw.sections) ? raw.sections : [],
+    verdicts:
+      typeof raw.verdicts === "object" && raw.verdicts !== null
+        ? (raw.verdicts as Verdicts)
+        : {},
+    score:
+      typeof raw.score === "object" && raw.score !== null
+        ? (raw.score as Score)
+        : { value: 0 },
   };
 }
 
@@ -134,7 +139,7 @@ function App() {
   return (
     <div style={{ padding: 16, width: 360 }}>
       <h2>Rook Lite</h2>
-      <p>AI-powered website analysis</p>
+      <p>AI-powered page analysis</p>
 
       <button
         onClick={analyzePage}
@@ -154,23 +159,54 @@ function App() {
 
       {analysis && (
         <>
-          <h3>Overview</h3>
-          <p>{analysis.what_this_site_is}</p>
+          {analysis.overview && (
+            <>
+              <h3>Overview</h3>
+              <p>{analysis.overview}</p>
+            </>
+          )}
 
-          <h3>Target Audience</h3>
-          <p>{analysis.target_audience}</p>
+          {analysis.target_audience && (
+            <>
+              <h3>Target Audience</h3>
+              <p>{analysis.target_audience}</p>
+            </>
+          )}
 
-          <h3>Strengths</h3>
-          <ul>{analysis.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          {analysis.sections?.map((section, idx) => (
+            <div key={section.id ?? idx}>
+              <h3>{section.title}</h3>
+              <ul>
+                {section.insights?.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-          <h3>Weaknesses</h3>
-          <ul>{analysis.weaknesses.map((w, i) => <li key={i}>{w}</li>)}</ul>
+          {analysis.verdicts?.marketing && (
+            <>
+              <h3>Marketing Verdict</h3>
+              <p>{analysis.verdicts.marketing}</p>
+            </>
+          )}
 
-          <h3>Improvements</h3>
-          <ul>{analysis.improvements.map((i, k) => <li key={k}>{i}</li>)}</ul>
+          {analysis.verdicts?.strategic && (
+            <>
+              <h3>Strategic Verdict</h3>
+              <p>{analysis.verdicts.strategic}</p>
+            </>
+          )}
 
-          <h3>Score</h3>
-          <strong>{analysis.overall_score.toFixed(1)}/10</strong>
+          {analysis.score?.value !== undefined && (
+            <>
+              <h3>Score</h3>
+              <strong>{analysis.score.value.toFixed(1)}/10</strong>
+              {analysis.score.reasoning && (
+                <p>{analysis.score.reasoning}</p>
+              )}
+            </>
+          )}
         </>
       )}
 
@@ -196,7 +232,8 @@ function App() {
                 marginBottom: 6,
               }}
             >
-              ⭐ {item.overall_score.toFixed(1)} — {item.target_audience}
+              ⭐ {item.score?.value?.toFixed(1) ?? "0.0"} —{" "}
+              {item.target_audience ?? "Analysis"}
             </div>
           ))}
         </>
