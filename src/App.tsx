@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import "./App.css";
+import AnalysisView from "./AnalysisView";
 import HistoryPage, { type HistoryAnalysis } from "./HistoryPage";
 
 type AnalysisSection = {
@@ -19,7 +20,7 @@ type Score = {
   reasoning?: string;
 };
 
-type AnalysisResult = {
+export type AnalysisResult = {
   id?: string;
   createdAt?: number;
   asset_type?: string;
@@ -54,14 +55,12 @@ function App() {
   const [history, setHistory] = useState<HistoryAnalysis[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewingSaved, setViewingSaved] = useState(false);
   const [showPromptPanel, setShowPromptPanel] = useState(false);
   const [promptUrl, setPromptUrl] = useState("");
   const [promptNote, setPromptNote] = useState("");
   const [logoMissing, setLogoMissing] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [activeView, setActiveView] = useState<"home" | "history">("home");
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const [activeView, setActiveView] = useState<"home" | "history" | "analysis">("home");
+  const [analysisBackView, setAnalysisBackView] = useState<"home" | "history">("home");
 
   useEffect(() => {
     const storedV2 = localStorage.getItem(HISTORY_KEY);
@@ -82,21 +81,6 @@ function App() {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(migrated));
     }
   }, []);
-
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        showProfileMenu &&
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target as Node)
-      ) {
-        setShowProfileMenu(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [showProfileMenu]);
 
   const saveToHistory = (data: AnalysisResult) => {
     const entry: HistoryAnalysis = {
@@ -120,7 +104,6 @@ function App() {
     setLoading(true);
     setError(null);
     setAnalysis(null);
-    setViewingSaved(false);
 
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -170,6 +153,8 @@ function App() {
 
           setAnalysis(safe);
           saveToHistory(safe);
+          setAnalysisBackView("home");
+          setActiveView("analysis");
         } catch {
           setError("Backend error while analyzing page");
         } finally {
@@ -196,16 +181,11 @@ function App() {
     }
   };
 
-  const handleProfileMenuAction = (action: "profile" | "history") => {
-    setShowProfileMenu(false);
-
-    if (action === "profile") {
-      setError("Profile view will be added next.");
-      return;
-    }
-
+  const openAnalysisFromHistory = (item: HistoryAnalysis) => {
+    setAnalysis(item);
+    setAnalysisBackView("history");
+    setActiveView("analysis");
     setError(null);
-    setActiveView("history");
   };
 
   if (activeView === "history") {
@@ -216,6 +196,20 @@ function App() {
             history={history}
             onGoBack={() => setActiveView("home")}
             onDeleteMany={deleteHistoryByIds}
+            onOpenAnalysis={openAnalysisFromHistory}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "analysis" && analysis) {
+    return (
+      <div className="popup-bg">
+        <div className="popup-card">
+          <AnalysisView
+            analysis={analysis}
+            onGoBack={() => setActiveView(analysisBackView)}
           />
         </div>
       </div>
@@ -227,42 +221,23 @@ function App() {
       <div className="popup-card">
         <div className="top-row">
           <h1>Rook Lite</h1>
-          <div className="profile-menu-wrap" ref={profileMenuRef}>
+          <div className="top-icons">
             <button
-              className="profile-btn"
+              className="icon-btn"
+              type="button"
+              title="History"
+              onClick={() => setActiveView("history")}
+            >
+              <img src="/history.png" alt="History" className="top-icon-image" />
+            </button>
+            <button
+              className="icon-btn"
               type="button"
               title="Profile"
-              onClick={() => setShowProfileMenu((prev) => !prev)}
+              onClick={() => setError("Profile page will be added next.")}
             >
-              <img src="/user.png" alt="User profile" className="profile-image" />
+              <img src="/user.png" alt="User profile" className="top-icon-image" />
             </button>
-
-            <AnimatePresence>
-              {showProfileMenu && (
-                <motion.div
-                  className="profile-dropdown"
-                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                  transition={{ duration: 0.16, ease: "easeOut" }}
-                >
-                  <button
-                    className="dropdown-item"
-                    type="button"
-                    onClick={() => handleProfileMenuAction("profile")}
-                  >
-                    Profile
-                  </button>
-                  <button
-                    className="dropdown-item"
-                    type="button"
-                    onClick={() => handleProfileMenuAction("history")}
-                  >
-                    History
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
 
@@ -329,79 +304,6 @@ function App() {
         )}
 
         {error && <p className="status-text">{error}</p>}
-        {viewingSaved && <p className="status-text">Viewing saved analysis</p>}
-
-        {analysis && (
-          <div className="result-panel">
-            {analysis.overview && (
-              <>
-                <h3>Overview</h3>
-                <p>{analysis.overview}</p>
-              </>
-            )}
-
-            {analysis.target_audience && (
-              <>
-                <h3>Target Audience</h3>
-                <p>{analysis.target_audience}</p>
-              </>
-            )}
-
-            {analysis.sections?.map((section, idx) => (
-              <div key={section.id ?? idx}>
-                <h3>{section.title}</h3>
-                <ul>
-                  {section.insights?.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {analysis.verdicts?.marketing && (
-              <>
-                <h3>Marketing Verdict</h3>
-                <p>{analysis.verdicts.marketing}</p>
-              </>
-            )}
-
-            {analysis.verdicts?.strategic && (
-              <>
-                <h3>Strategic Verdict</h3>
-                <p>{analysis.verdicts.strategic}</p>
-              </>
-            )}
-
-            {analysis.score?.value !== undefined && (
-              <>
-                <h3>Score</h3>
-                <strong>{analysis.score.value.toFixed(1)}/10</strong>
-                {analysis.score.reasoning && <p>{analysis.score.reasoning}</p>}
-              </>
-            )}
-          </div>
-        )}
-
-        {history.length > 0 && (
-          <div className="history-panel">
-            <h3>Recent analyses</h3>
-            {history.map((item, i) => (
-              <button
-                key={item.id ?? i}
-                className="history-item"
-                type="button"
-                onClick={() => {
-                  setAnalysis(item);
-                  setViewingSaved(true);
-                  setError(null);
-                }}
-              >
-                {item.score?.value?.toFixed(1) ?? "0.0"} |{" "}
-                {item.target_audience ?? "Analysis"}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

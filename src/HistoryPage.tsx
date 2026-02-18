@@ -4,13 +4,17 @@ import "./HistoryPage.css";
 
 type HistoryScore = {
   value?: number;
+  reasoning?: string;
 };
 
 export type HistoryAnalysis = {
   id: string;
   createdAt: number;
+  asset_type?: string;
   target_audience?: string;
   overview?: string;
+  sections?: { id?: string; title?: string; insights?: string[] }[];
+  verdicts?: { marketing?: string; strategic?: string };
   score?: HistoryScore;
 };
 
@@ -18,6 +22,7 @@ type HistoryPageProps = {
   history: HistoryAnalysis[];
   onGoBack: () => void;
   onDeleteMany: (ids: string[]) => void;
+  onOpenAnalysis: (item: HistoryAnalysis) => void;
 };
 
 function getAnalysisName(item: HistoryAnalysis): string {
@@ -38,12 +43,14 @@ function HistoryRow({
   deleteMode,
   checked,
   onToggle,
+  onOpen,
 }: {
   index: number;
   item: HistoryAnalysis;
   deleteMode: boolean;
   checked: boolean;
   onToggle: () => void;
+  onOpen: () => void;
 }) {
   return (
     <div className="history-row">
@@ -59,14 +66,18 @@ function HistoryRow({
           <span>{index + 1}</span>
         )}
       </div>
-      <div className="history-text-box">
+      <button
+        type="button"
+        className="history-text-box history-open-btn"
+        onClick={deleteMode ? onToggle : onOpen}
+      >
         {getAnalysisName(item)}
-      </div>
+      </button>
     </div>
   );
 }
 
-function HistoryPage({ history, onGoBack, onDeleteMany }: HistoryPageProps) {
+function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: HistoryPageProps) {
   const [search, setSearch] = useState("");
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -141,6 +152,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany }: HistoryPageProps) {
             deleteMode={deleteMode}
             checked={selectedIds.includes(item.id)}
             onToggle={() => togglePick(item.id)}
+            onOpen={() => onOpenAnalysis(item)}
           />
         ))}
       </div>
@@ -156,6 +168,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany }: HistoryPageProps) {
             deleteMode={deleteMode}
             checked={selectedIds.includes(item.id)}
             onToggle={() => togglePick(item.id)}
+            onOpen={() => onOpenAnalysis(item)}
           />
         ))}
       </div>
