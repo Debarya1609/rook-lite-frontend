@@ -1,188 +1,309 @@
-.popup-bg {
+/* =========================
+   FONT SETUP
+========================= */
+
+@font-face {
+  font-family: "LeagueSpartan";
+  src: url("/LeagueSpartan-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+
+/* =========================
+   PANEL LAYOUT (WHITE)
+========================= */
+
+.panel-bg {
   width: 100%;
   min-height: 100vh;
-  background: #e9e9e9;
-  padding: 0;
-  box-sizing: border-box;
+  background: #ffffff;
 }
 
-.popup-card {
-  background: #e9e9e9;
-  border-radius: 0;
+.panel-card {
   min-height: 100vh;
-  padding: 40px 22px 24px;
+  background: #ffffff;
+  padding: 18px;
   box-sizing: border-box;
 }
 
-.top-row {
+
+/* =========================
+   HOME BACKGROUND (DARK)
+========================= */
+
+.home-bg {
+  width: 100%;
+  min-height: 100vh;
+  background: #16171b;
+}
+
+.home-card {
+  position: relative;
+  min-height: 100vh;
+  padding: 28px 18px 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #16171b;
+}
+
+/* === CLEAN GRID BACKGROUND (NO DOTS) === */
+
+.home-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.756) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.756) 1px, transparent 1px);
+
+  background-size: 38px 38px;
+}
+
+
+/* =========================
+   Z-INDEX CONTROL
+========================= */
+
+.home-top-row,
+.home-hero,
+.home-subtitle,
+.home-actions,
+.home-prompt-panel,
+.home-status-text {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================
+   TOP ROW
+========================= */
+
+.home-top-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
-.top-row h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 500;
-  color: #111;
+.home-pill {
+  width: 128px;
+  height: 48px;
+  border: 4px solid #ececec;
+  border-radius: 999px;
+  background: rgba(55, 56, 60, 0.95);
+  cursor: default;
 }
 
-.top-icons {
+.home-top-icons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 0;
-  background: transparent;
+.home-circle-btn {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #ececec;
+  border-radius: 999px;
+  background: rgba(55, 56, 60, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 0;
+}
+
+.home-top-icon-image {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  filter: grayscale(1) brightness(3);
+  opacity: 0.85;
+}
+
+
+/* =========================
+   HERO SECTION
+========================= */
+
+.home-hero {
+  margin-top: 48px;
+  min-height: 280px;
   display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* =========================
+   WORDMARK (STACKED)
+========================= */
+
+/* =========================
+   WORDMARK CUSTOM ALIGN
+========================= */
+
+.home-wordmark {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+
+  font-family: "LeagueSpartan", Arial, sans-serif;
+  font-weight: 800;
+  color: #d6d7da;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.top-icon-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+/* RooK - push LEFT */
+.wordmark-rook {
+  font-size: 120px;
+  line-height: 0.9;
+  letter-spacing: -1px;
+
+  transform: translateX(-30px); /* adjust this value */
 }
 
-.logo-wrap {
-  margin-top: 104px;
-  display: flex;
-  justify-content: center;
+/* LitE - push RIGHT */
+.wordmark-lite {
+  font-size: 110px;
+  line-height: 0.9;
+  letter-spacing: -1px;
+
+  margin-top: -20px;
+  transform: translateX(80px); /* adjust this value */
 }
 
-.rook-logo {
-  width: 156px;
+.home-rook-logo {
+  position: relative;
+  z-index: 3;
+  width: 240px;
   height: auto;
   object-fit: contain;
 }
 
-.logo-fallback {
-  width: 145px;
-  height: 145px;
+.home-logo-fallback {
+  width: 220px;
+  height: 220px;
+  color: #ececec;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 90px;
-  color: #222;
+  font-family: "LeagueSpartan", Arial, sans-serif;
+  font-size: 62px;
+  font-weight: 700;
 }
 
-.subtitle {
-  margin: 24px auto 0;
-  max-width: 300px;
+
+/* =========================
+   SUBTITLE
+========================= */
+
+.home-subtitle {
+  margin: -18px auto 0; /* pulls it upward */
+  max-width: 420px;
   text-align: center;
-  font-size: 15px;
-  line-height: 1.4;
-  color: #222;
+  color: #f4f4f4;
+  font-family: "LeagueSpartan", Arial, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.0;
+  text-transform: uppercase;
 }
 
-.main-actions {
-  margin-top: 26px;
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+
+.home-actions {
+  margin-top: 22px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
 }
 
-.action-btn {
-  width: 128px;
+.home-action-btn {
+  min-width: 142px;
   min-height: 50px;
-  padding: 10px 12px;
-  border: 2px solid #111;
-  border-radius: 12px;
-  background: #ececec;
-  color: #111;
-  font-size: 15px;
-  font-weight: 500;
+  border: 4px solid #ececec;
+  border-radius: 999px;
+  background: rgba(55, 56, 60, 0.95);
+  color: #f6f6f6;
+  font-family: "LeagueSpartan", Arial, sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.2px;
   cursor: pointer;
-  box-shadow: 6px 8px 0 #111;
-  transform: translateY(0);
+  transition: all 0.2s ease;
 }
 
-.action-btn:disabled {
+.home-action-btn:hover {
+  background: rgba(70, 72, 78, 0.95);
+}
+
+.home-action-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-.prompt-panel {
-  margin-top: 16px;
+
+/* =========================
+   PROMPT PANEL
+========================= */
+
+.home-prompt-panel {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.prompt-panel input,
-.prompt-panel textarea {
+.home-prompt-panel input,
+.home-prompt-panel textarea {
   width: 100%;
-  border: 1px solid #666;
-  border-radius: 8px;
-  padding: 8px 10px;
+  background: #25262b;
+  color: #f4f4f4;
+  border: 1px solid #6f7077;
+  border-radius: 10px;
+  padding: 9px 10px;
   font-size: 13px;
-  box-sizing: border-box;
-  font-family: inherit;
+  font-family: "LeagueSpartan", Arial, sans-serif;
 }
 
-.small-btn {
+.home-small-btn {
   width: 120px;
-  padding: 8px 10px;
-  border: 1px solid #111;
-  border-radius: 8px;
-  background: #fff;
-  color: #111;
+  min-height: 36px;
+  border: 2px solid #ececec;
+  border-radius: 999px;
+  background: rgba(55, 56, 60, 0.95);
+  color: #f8f8f8;
+  font-family: "LeagueSpartan", Arial, sans-serif;
   font-size: 13px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.status-text {
+.home-small-btn:hover {
+  background: rgba(70, 72, 78, 0.95);
+}
+
+
+/* =========================
+   STATUS TEXT
+========================= */
+
+.home-status-text {
   margin: 10px 0 0;
   font-size: 12px;
-  color: #b22222;
-}
-
-.result-panel {
-  margin-top: 14px;
-  background: #f5f5f5;
-  border: 1px solid #d3d3d3;
-  border-radius: 10px;
-  padding: 10px;
-}
-
-.result-panel h3 {
-  margin: 0 0 6px;
-  font-size: 13px;
-}
-
-.result-panel p,
-.result-panel li {
-  margin: 0 0 8px;
-  font-size: 12px;
-  color: #222;
-}
-
-.history-panel {
-  margin-top: 14px;
-}
-
-.history-panel h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-}
-
-.history-item {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 6px;
-  border: 1px solid #bcbcbc;
-  border-radius: 6px;
-  background: #f6f6f6;
-  padding: 8px;
-  font-size: 12px;
-  cursor: pointer;
+  color: #ff8080;
+  text-align: center;
+  font-family: "LeagueSpartan", Arial, sans-serif;
 }

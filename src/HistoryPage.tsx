@@ -29,52 +29,10 @@ function getAnalysisName(item: HistoryAnalysis): string {
   if (item.target_audience && item.target_audience.trim()) {
     return item.target_audience.trim();
   }
-
   if (item.overview && item.overview.trim()) {
-    return item.overview.trim().slice(0, 70);
+    return item.overview.trim().slice(0, 88);
   }
-
   return "Untitled analysis";
-}
-
-function HistoryRow({
-  index,
-  item,
-  deleteMode,
-  checked,
-  onToggle,
-  onOpen,
-}: {
-  index: number;
-  item: HistoryAnalysis;
-  deleteMode: boolean;
-  checked: boolean;
-  onToggle: () => void;
-  onOpen: () => void;
-}) {
-  return (
-    <div className="history-row">
-      <div className="history-index-box">
-        {deleteMode ? (
-          <input
-            type="checkbox"
-            className="history-checkbox"
-            checked={checked}
-            onChange={onToggle}
-          />
-        ) : (
-          <span>{index + 1}</span>
-        )}
-      </div>
-      <button
-        type="button"
-        className="history-text-box history-open-btn"
-        onClick={deleteMode ? onToggle : onOpen}
-      >
-        {getAnalysisName(item)}
-      </button>
-    </div>
-  );
 }
 
 function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: HistoryPageProps) {
@@ -91,7 +49,6 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
   }, [history, search]);
 
   const recentViewed = filteredHistory.slice(0, 3);
-  const selectedCount = selectedIds.length;
 
   const togglePick = (id: string) => {
     setSelectedIds((prev) =>
@@ -99,20 +56,17 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
     );
   };
 
-  const handleDeleteButton = () => {
+  const handleDeleteCta = () => {
     setLocalNotice(null);
-
     if (!deleteMode) {
       setDeleteMode(true);
       setSelectedIds([]);
       return;
     }
-
-    if (selectedCount === 0) {
+    if (selectedIds.length === 0) {
       setLocalNotice("Select analyses first.");
       return;
     }
-
     setShowConfirm(true);
   };
 
@@ -125,72 +79,83 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
   };
 
   return (
-    <div className="history-page">
-      <div className="history-head">
-        <img src="/rook-lite-logo.png" alt="Rook Lite logo" className="history-head-logo" />
-        <p>
-          Rook Lite take notes for your every analysis and saves it for you for future.
-        </p>
+    <div className="history-dark-page">
+      <div className="history-dark-header">
+        <h2>Strategy Archive</h2>
+        <button className="history-dark-pill" type="button" onClick={onGoBack} />
       </div>
 
       <input
-        className="history-search"
+        className="history-dark-search"
         type="text"
         placeholder="Search here..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      <h3 className="history-section-title">Recently Viewd</h3>
-      <div className="history-list">
-        {recentViewed.length === 0 && <p className="history-empty">No recent analyses.</p>}
-        {recentViewed.map((item, index) => (
-          <HistoryRow
-            key={`recent-${item.id}`}
-            index={index}
-            item={item}
-            deleteMode={deleteMode}
-            checked={selectedIds.includes(item.id)}
-            onToggle={() => togglePick(item.id)}
-            onOpen={() => onOpenAnalysis(item)}
-          />
-        ))}
+      <h3 className="history-dark-title">Recently Viewed</h3>
+      <div className="history-recent-grid">
+        {[0, 1, 2].map((idx) => {
+          const item = recentViewed[idx];
+          const colorClass = idx === 0 ? "accent-orange" : idx === 1 ? "accent-green" : "accent-blue";
+          return (
+            <button
+              key={item?.id ?? `placeholder-${idx}`}
+              type="button"
+              className={`recent-card ${colorClass}`}
+              onClick={() => item && onOpenAnalysis(item)}
+              disabled={!item}
+            >
+              {item ? getAnalysisName(item) : ""}
+            </button>
+          );
+        })}
       </div>
 
-      <h3 className="history-section-title">All Analysis</h3>
-      <div className="history-list">
-        {filteredHistory.length === 0 && <p className="history-empty">No analyses found.</p>}
-        {filteredHistory.map((item, index) => (
-          <HistoryRow
+      <div className="history-all-header">
+        <h3 className="history-dark-title">All Analyses</h3>
+        <button
+          type="button"
+          className={`history-select-toggle ${deleteMode ? "active" : ""}`}
+          onClick={() => {
+            setDeleteMode((prev) => !prev);
+            setSelectedIds([]);
+            setLocalNotice(null);
+          }}
+        />
+      </div>
+
+      <div className="history-all-list">
+        {filteredHistory.length === 0 && <p className="history-dark-empty">No analyses found.</p>}
+        {filteredHistory.map((item) => (
+          <button
             key={item.id}
-            index={index}
-            item={item}
-            deleteMode={deleteMode}
-            checked={selectedIds.includes(item.id)}
-            onToggle={() => togglePick(item.id)}
-            onOpen={() => onOpenAnalysis(item)}
-          />
+            type="button"
+            className="analysis-strip"
+            onClick={deleteMode ? () => togglePick(item.id) : () => onOpenAnalysis(item)}
+          >
+            <span>{getAnalysisName(item)}</span>
+            {deleteMode && (
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(item.id)}
+                onChange={() => togglePick(item.id)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </button>
         ))}
       </div>
 
-      {localNotice && <p className="history-notice">{localNotice}</p>}
+      {localNotice && <p className="history-dark-notice">{localNotice}</p>}
 
-      <div className="history-actions">
+      <div className="history-dark-footer">
         <motion.button
           type="button"
-          className="history-btn history-btn-back"
-          onClick={onGoBack}
-          whileHover={{ y: -6, boxShadow: "8px 14px 0 #111" }}
-          transition={{ type: "spring", stiffness: 260, damping: 18 }}
-        >
-          Go Back
-        </motion.button>
-        <motion.button
-          type="button"
-          className="history-btn history-btn-delete"
-          onClick={handleDeleteButton}
-          whileHover={{ y: -6, boxShadow: "8px 14px 0 #b10000" }}
-          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+          className="history-delete-cta"
+          onClick={handleDeleteCta}
+          whileHover={{ y: -4, boxShadow: "0 8px 20px rgba(255, 50, 50, 0.35)" }}
+          transition={{ type: "spring", stiffness: 250, damping: 16 }}
         >
           Delete
         </motion.button>
@@ -213,18 +178,10 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
             >
               <p>Are you sure you want to delete analysis</p>
               <div className="confirm-actions">
-                <button
-                  type="button"
-                  className="confirm-btn confirm-btn-cancel"
-                  onClick={() => setShowConfirm(false)}
-                >
+                <button type="button" className="confirm-btn confirm-btn-cancel" onClick={() => setShowConfirm(false)}>
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  className="confirm-btn confirm-btn-delete"
-                  onClick={confirmDelete}
-                >
+                <button type="button" className="confirm-btn confirm-btn-delete" onClick={confirmDelete}>
                   Delete
                 </button>
               </div>

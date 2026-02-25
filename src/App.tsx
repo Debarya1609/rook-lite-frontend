@@ -190,8 +190,8 @@ function App() {
 
   if (activeView === "history") {
     return (
-      <div className="popup-bg">
-        <div className="popup-card">
+      <div className="home-bg">
+        <div className="home-card">
           <HistoryPage
             history={history}
             onGoBack={() => setActiveView("home")}
@@ -205,8 +205,8 @@ function App() {
 
   if (activeView === "analysis" && analysis) {
     return (
-      <div className="popup-bg">
-        <div className="popup-card">
+      <div className="panel-bg">
+        <div className="panel-card">
           <AnalysisView
             analysis={analysis}
             onGoBack={() => setActiveView(analysisBackView)}
@@ -217,66 +217,70 @@ function App() {
   }
 
   return (
-    <div className="popup-bg">
-      <div className="popup-card">
-        <div className="top-row">
-          <h1>Rook Lite</h1>
-          <div className="top-icons">
+    <div className="home-bg">
+      <div className="home-card">
+        <div className="home-top-row">
+          <button className="home-pill" type="button" aria-label="Main toggle" />
+          <div className="home-top-icons">
             <button
-              className="icon-btn"
+              className="home-circle-btn"
               type="button"
               title="History"
               onClick={() => setActiveView("history")}
             >
-              <img src="/history.png" alt="History" className="top-icon-image" />
+              <img src="/history.png" alt="History" className="home-top-icon-image" />
             </button>
             <button
-              className="icon-btn"
+              className="home-circle-btn"
               type="button"
               title="Profile"
               onClick={() => setError("Profile page will be added next.")}
             >
-              <img src="/user.png" alt="User profile" className="top-icon-image" />
+              <img src="/user.png" alt="User profile" className="home-top-icon-image" />
             </button>
           </div>
         </div>
 
-        <div className="logo-wrap">
+        <div className="home-hero">
+          <div className="home-wordmark" aria-hidden>
+            <span className="wordmark-rook">RooK</span>
+            <span className="wordmark-lite">LitE</span>
+          </div>
           {logoMissing ? (
-            <div className="logo-fallback" aria-label="Rook logo fallback">
+            <div className="home-logo-fallback" aria-label="Rook logo fallback">
               ROOK
             </div>
           ) : (
             <img
-              src="/rook-lite-logo.png"
+              src="/Rook_expload.png"
               alt="Rook Lite logo"
-              className="rook-logo"
+              className="home-rook-logo"
               onError={() => setLogoMissing(true)}
             />
           )}
         </div>
 
-        <p className="subtitle">
+        <p className="home-subtitle">
           Rook Lite is an AI browser extension delivering real-time,
           context-aware marketing strategy insights.
         </p>
 
-        <div className="main-actions">
+        <div className="home-actions">
           <motion.button
-            className="action-btn"
+            className="home-action-btn"
             type="button"
             disabled={loading}
             onClick={analyzePage}
-            whileHover={{ y: -6, boxShadow: "8px 14px 0 #111" }}
+            whileHover={{ y: -4, boxShadow: "0 8px 22px rgba(255, 255, 255, 0.16)" }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
           >
             {loading ? "Analyzing..." : "Analyze page"}
           </motion.button>
           <motion.button
-            className="action-btn"
+            className="home-action-btn"
             type="button"
             onClick={() => setShowPromptPanel((prev) => !prev)}
-            whileHover={{ y: -6, boxShadow: "8px 14px 0 #111" }}
+            whileHover={{ y: -4, boxShadow: "0 8px 22px rgba(255, 255, 255, 0.16)" }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
           >
             Prompt any link
@@ -284,7 +288,7 @@ function App() {
         </div>
 
         {showPromptPanel && (
-          <div className="prompt-panel">
+          <div className="home-prompt-panel">
             <input
               type="url"
               placeholder="https://example.com"
@@ -297,13 +301,13 @@ function App() {
               onChange={(e) => setPromptNote(e.target.value)}
               rows={2}
             />
-            <button className="small-btn" type="button" onClick={handlePromptAnyLink}>
+            <button className="home-small-btn" type="button" onClick={handlePromptAnyLink}>
               Analyze URL
             </button>
           </div>
         )}
 
-        {error && <p className="status-text">{error}</p>}
+        {error && <p className="home-status-text">{error}</p>}
       </div>
     </div>
   );
