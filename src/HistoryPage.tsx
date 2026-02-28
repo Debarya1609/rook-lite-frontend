@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  ChevronRight,
+  GitCompareArrows,
+  Radar,
+  Search,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import "./HistoryPage.css";
 
 type HistoryScore = {
@@ -13,6 +21,7 @@ export type HistoryAnalysis = {
   asset_type?: string;
   target_audience?: string;
   overview?: string;
+  url?: string;
   sections?: { id?: string; title?: string; insights?: string[] }[];
   verdicts?: { marketing?: string; strategic?: string };
   score?: HistoryScore;
@@ -25,28 +34,71 @@ type HistoryPageProps = {
   onOpenAnalysis: (item: HistoryAnalysis) => void;
 };
 
+type ModeFilter = "all" | "scan" | "compare" | "create";
+type ItemMode = "scan" | "compare" | "create";
+
 function getAnalysisName(item: HistoryAnalysis): string {
-  if (item.target_audience && item.target_audience.trim()) {
-    return item.target_audience.trim();
-  }
-  if (item.overview && item.overview.trim()) {
-    return item.overview.trim().slice(0, 88);
-  }
+  if (item.target_audience && item.target_audience.trim()) return item.target_audience.trim();
+  if (item.overview && item.overview.trim()) return item.overview.trim().slice(0, 110);
   return "Untitled analysis";
+}
+
+function getItemMode(item: HistoryAnalysis): ItemMode {
+  const source = `${item.asset_type ?? ""} ${item.overview ?? ""}`.toLowerCase();
+  if (source.includes("compare") || source.includes("competitor") || source.includes("benchmark")) {
+    return "compare";
+  }
+  if (source.includes("create") || source.includes("generate") || source.includes("campaign")) {
+    return "create";
+  }
+  return "scan";
+}
+
+function getScoreValue(item: HistoryAnalysis): number {
+  const raw = item.score?.value ?? 0;
+  if (raw <= 10) return Math.max(0, Math.min(100, Math.round(raw * 10)));
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
+
+function getModeLabel(mode: ItemMode): string {
+  if (mode === "scan") return "SCAN";
+  if (mode === "compare") return "COMPARE";
+  return "CREATE";
+}
+
+function formatDateTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function ModeIcon({ mode }: { mode: ItemMode }) {
+  if (mode === "scan") return <Radar size={16} />;
+  if (mode === "compare") return <GitCompareArrows size={16} />;
+  return <Sparkles size={16} />;
 }
 
 function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: HistoryPageProps) {
   const [search, setSearch] = useState("");
-  const [deleteMode, setDeleteMode] = useState(false);
+  const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [localNotice, setLocalNotice] = useState<string | null>(null);
 
   const filteredHistory = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return history;
-    return history.filter((item) => getAnalysisName(item).toLowerCase().includes(q));
-  }, [history, search]);
+    return history.filter((item) => {
+      const mode = getItemMode(item);
+      const filterMatch = modeFilter === "all" || mode === modeFilter;
+      const searchSource = `${getAnalysisName(item)} ${item.url ?? ""} ${mode}`.toLowerCase();
+      const searchMatch = !q || searchSource.includes(q);
+      return filterMatch && searchMatch;
+    });
+  }, [history, modeFilter, search]);
 
   const recentViewed = filteredHistory.slice(0, 3);
 
@@ -56,13 +108,8 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
     );
   };
 
-  const handleDeleteCta = () => {
+  const handleDeleteSelected = () => {
     setLocalNotice(null);
-    if (!deleteMode) {
-      setDeleteMode(true);
-      setSelectedIds([]);
-      return;
-    }
     if (selectedIds.length === 0) {
       setLocalNotice("Select analyses first.");
       return;
@@ -73,92 +120,149 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
   const confirmDelete = () => {
     onDeleteMany(selectedIds);
     setSelectedIds([]);
-    setDeleteMode(false);
     setShowConfirm(false);
     setLocalNotice(null);
+    setIsEditMode(false);
   };
 
   return (
     <div className="history-dark-page">
-      <div className="history-dark-header">
-        <h2>Strategy Archive</h2>
-        <button className="history-dark-pill" type="button" onClick={onGoBack} />
+      <div className="history-hero-bg" aria-hidden>
+        <div className="history-wordmark-bg">
+          <span className="history-wordmark-rook">RooK</span>
+          <span className="history-wordmark-lite">LitE</span>
+        </div>
+        <img src="/Rook_expload.png" alt="" className="history-rook-bg" />
       </div>
 
-      <input
-        className="history-dark-search"
-        type="text"
-        placeholder="Search here..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="history-content">
+        <div className="history-dark-header">
+          <div className="header-left">
+            <div className="header-title-row">
+              <h2>Strategy Archive</h2>
+              <button className="secondary-btn" type="button" onClick={onGoBack}>
+                Home
+              </button>
+            </div>
+            <p>Your saved scans, comparisons, and generated strategies.</p>
+          </div>
+        </div>
 
-      <h3 className="history-dark-title">Recently Viewed</h3>
-      <div className="history-recent-grid">
-        {[0, 1, 2].map((idx) => {
-          const item = recentViewed[idx];
-          const colorClass = idx === 0 ? "accent-orange" : idx === 1 ? "accent-green" : "accent-blue";
-          return (
-            <button
-              key={item?.id ?? `placeholder-${idx}`}
-              type="button"
-              className={`recent-card ${colorClass}`}
-              onClick={() => item && onOpenAnalysis(item)}
-              disabled={!item}
+        <div className="history-search-wrap">
+          <Search size={16} />
+          <input
+            className="history-dark-search"
+            type="text"
+            placeholder="Search by page title, URL, or mode..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <h3 className="history-dark-title">Recently Viewed</h3>
+        <div className="history-recent-grid">
+          {recentViewed.map((item) => {
+            const mode = getItemMode(item);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="intel-card"
+                onClick={() => onOpenAnalysis(item)}
+              >
+                <div className="intel-top">
+                  <span className={`mode-tag mode-${mode}`}>{getModeLabel(mode)}</span>
+                  <span className="score-badge">{getScoreValue(item)}</span>
+                </div>
+                <p className="intel-title">{getAnalysisName(item)}</p>
+                <p className="intel-meta">{formatDateTime(item.createdAt)}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="history-all-header">
+          <h3 className="history-dark-title">All Analyses</h3>
+          <div className="all-actions">
+            <select
+              className="history-filter-select"
+              value={modeFilter}
+              onChange={(e) => setModeFilter(e.target.value as ModeFilter)}
             >
-              {item ? getAnalysisName(item) : ""}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="history-all-header">
-        <h3 className="history-dark-title">All Analyses</h3>
-        <button
-          type="button"
-          className={`history-select-toggle ${deleteMode ? "active" : ""}`}
-          onClick={() => {
-            setDeleteMode((prev) => !prev);
-            setSelectedIds([]);
-            setLocalNotice(null);
-          }}
-        />
-      </div>
-
-      <div className="history-all-list">
-        {filteredHistory.length === 0 && <p className="history-dark-empty">No analyses found.</p>}
-        {filteredHistory.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className="analysis-strip"
-            onClick={deleteMode ? () => togglePick(item.id) : () => onOpenAnalysis(item)}
-          >
-            <span>{getAnalysisName(item)}</span>
-            {deleteMode && (
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(item.id)}
-                onChange={() => togglePick(item.id)}
-                onClick={(e) => e.stopPropagation()}
-              />
+              <option value="all">All</option>
+              <option value="scan">Scans</option>
+              <option value="compare">Compare</option>
+              <option value="create">Create</option>
+            </select>
+            {isEditMode && (
+              <button className="inline-delete-btn" type="button" onClick={handleDeleteSelected}>
+                Delete Selected
+              </button>
             )}
-          </button>
-        ))}
-      </div>
+            <button
+              className="edit-btn"
+              type="button"
+              onClick={() => {
+                setIsEditMode((prev) => !prev);
+                setSelectedIds([]);
+                setLocalNotice(null);
+              }}
+            >
+              {isEditMode ? "Done" : "Edit"}
+            </button>
+          </div>
+        </div>
 
-      {localNotice && <p className="history-dark-notice">{localNotice}</p>}
+        <div className="history-all-list">
+          {filteredHistory.length === 0 && <p className="history-dark-empty">No analyses found.</p>}
+          {filteredHistory.map((item) => {
+            const mode = getItemMode(item);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`analysis-row ${isEditMode && selectedIds.includes(item.id) ? "selected" : ""}`}
+                onClick={isEditMode ? () => togglePick(item.id) : () => onOpenAnalysis(item)}
+              >
+                <div className="row-left-icon">
+                  <ModeIcon mode={mode} />
+                </div>
 
-      <div className="history-dark-footer">
-        <motion.button
-          type="button"
-          className="history-delete-cta"
-          onClick={handleDeleteCta}
-          whileHover={{ y: -4, boxShadow: "0 8px 20px rgba(255, 50, 50, 0.35)" }}
-          transition={{ type: "spring", stiffness: 250, damping: 16 }}
-        >
-          Delete
-        </motion.button>
+                <div className="row-main">
+                  <p className="row-title">{getAnalysisName(item)}</p>
+                  <p className="row-url">{item.url || "No URL stored"}</p>
+                </div>
+
+                <div className="row-right">
+                  <span className="score-badge small">{getScoreValue(item)}</span>
+                  <span className="row-date">{formatDateTime(item.createdAt)}</span>
+                </div>
+
+                <div className="row-arrow">
+                  <ChevronRight size={16} />
+                </div>
+
+                {!isEditMode && (
+                  <span className="row-trash">
+                    <Trash2 size={14} />
+                  </span>
+                )}
+
+                {isEditMode && (
+                  <input
+                    className="row-checkbox"
+                    type="checkbox"
+                    checked={selectedIds.includes(item.id)}
+                    onChange={() => togglePick(item.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {localNotice && <p className="history-dark-notice">{localNotice}</p>}
       </div>
 
       <AnimatePresence>
@@ -176,7 +280,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
             >
-              <p>Are you sure you want to delete analysis</p>
+              <p>Are you sure you want to delete selected analyses?</p>
               <div className="confirm-actions">
                 <button type="button" className="confirm-btn confirm-btn-cancel" onClick={() => setShowConfirm(false)}>
                   Cancel

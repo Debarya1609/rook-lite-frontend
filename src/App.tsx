@@ -4,6 +4,7 @@ import {
   Clock3,
   GitCompareArrows,
   LogOut,
+  Menu,
   Radar,
   Settings,
   Sparkles,
@@ -57,7 +58,7 @@ const CREATE_OPTIONS = [
   "Repurpose Content",
 ] as const;
 
-type Mode = "scan" | "create" | "compare";
+type Mode = "scan" | "create" | "compare" | null;
 type GearAction = "history" | "profile" | "settings" | "logout";
 
 function App() {
@@ -66,9 +67,9 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [logoMissing, setLogoMissing] = useState(false);
 
-  const [activeMode, setActiveMode] = useState<Mode>("scan");
+  const [activeMode, setActiveMode] = useState<Mode>(null);
   const [hoveredMode, setHoveredMode] = useState<Mode | null>(null);
-  const [scanSubMode, setScanSubMode] = useState<string>("Full Page Scan");
+  const [scanSubMode, setScanSubMode] = useState<string>("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [isGearOpen, setIsGearOpen] = useState(false);
@@ -244,10 +245,10 @@ function App() {
           <button
             className="home-logo-icon-btn"
             type="button"
-            title="Scan"
+            title="Rook Lite"
             onClick={() => {
-              setActiveMode("scan");
-              setScanSubMode("Full Page Scan");
+              setActiveMode(null);
+              setScanSubMode("");
               setError(null);
               setHomeResult(null);
             }}
@@ -363,7 +364,7 @@ function App() {
                 transition={{ duration: 0.2 }}
                 onClick={() => setIsGearOpen((prev) => !prev)}
               >
-                <Settings size={18} />
+                <Menu size={18} />
               </motion.button>
 
               <AnimatePresence>
