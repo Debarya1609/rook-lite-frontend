@@ -39,6 +39,12 @@ export type AnalysisResult = {
   sections?: AnalysisSection[];
   verdicts?: Verdicts;
   score?: Score;
+  conversion_scores?: Record<string, number>;
+  pricing_analysis?: Record<string, number | string>;
+  insights?: Record<string, string[]>;
+  marketing_verdict?: string;
+  strategic_verdict?: string;
+  [key: string]: unknown;
 };
 
 const HISTORY_KEY = "rook-lite-history-v2";

@@ -8,14 +8,29 @@
 .panel-bg {
   width: 100%;
   min-height: 100vh;
-  background: #ffffff;
+  background: #16171b;
 }
 
 .panel-card {
+  position: relative;
   min-height: 100vh;
-  background: #ffffff;
+  background: #16171b;
   padding: 18px;
   box-sizing: border-box;
+  overflow: visible;
+}
+
+.panel-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.756) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.756) 1px, transparent 1px);
+  background-size: 38px 38px;
+  z-index: 0;
 }
 
 .home-bg {

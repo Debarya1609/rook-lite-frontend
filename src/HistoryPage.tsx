@@ -164,11 +164,13 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
           {recentViewed.map((item) => {
             const mode = getItemMode(item);
             return (
-              <button
+              <motion.button
                 key={item.id}
                 type="button"
                 className="intel-card"
                 onClick={() => onOpenAnalysis(item)}
+                whileHover={{ scale: 1.02, y: -2 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 <div className="intel-top">
                   <span className={`mode-tag mode-${mode}`}>{getModeLabel(mode)}</span>
@@ -176,7 +178,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
                 </div>
                 <p className="intel-title">{getAnalysisName(item)}</p>
                 <p className="intel-meta">{formatDateTime(item.createdAt)}</p>
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -184,24 +186,33 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
         <div className="history-all-header">
           <h3 className="history-dark-title">All Analyses</h3>
           <div className="all-actions">
-            <select
-              className="history-filter-select"
-              value={modeFilter}
-              onChange={(e) => setModeFilter(e.target.value as ModeFilter)}
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <option value="all">All</option>
-              <option value="scan">Scans</option>
-              <option value="compare">Compare</option>
-              <option value="create">Create</option>
-            </select>
+              <select
+                className="history-filter-select"
+                value={modeFilter}
+                onChange={(e) => setModeFilter(e.target.value as ModeFilter)}
+              >
+                <option value="all">All</option>
+                <option value="scan">Scans</option>
+                <option value="compare">Compare</option>
+                <option value="create">Create</option>
+              </select>
+            </motion.div>
             {isEditMode && (
               <button className="inline-delete-btn" type="button" onClick={handleDeleteSelected}>
                 Delete Selected
               </button>
             )}
-            <button
+            <motion.button
               className="edit-btn"
               type="button"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.02 }}
               onClick={() => {
                 setIsEditMode((prev) => !prev);
                 setSelectedIds([]);
@@ -209,7 +220,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
               }}
             >
               {isEditMode ? "Done" : "Edit"}
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -218,11 +229,13 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
           {filteredHistory.map((item) => {
             const mode = getItemMode(item);
             return (
-              <button
+              <motion.button
                 key={item.id}
                 type="button"
                 className={`analysis-row ${isEditMode && selectedIds.includes(item.id) ? "selected" : ""}`}
                 onClick={isEditMode ? () => togglePick(item.id) : () => onOpenAnalysis(item)}
+                whileHover={{ backgroundColor: "rgba(25, 29, 39, 0.92)" }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
               >
                 <div className="row-left-icon">
                   <ModeIcon mode={mode} />
@@ -257,7 +270,7 @@ function HistoryPage({ history, onGoBack, onDeleteMany, onOpenAnalysis }: Histor
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </div>
